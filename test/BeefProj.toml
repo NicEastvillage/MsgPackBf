@@ -1,0 +1,6 @@
+FileVersion = 1
+Dependencies = {corlib = "*", MsgPackBf = "*"}
+
+[Project]
+Name = "MsgPackBfTest"
+StartupObject = "MsgPackBfTest.Program"

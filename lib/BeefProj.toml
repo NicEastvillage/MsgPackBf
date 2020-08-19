@@ -1,0 +1,11 @@
+FileVersion = 1
+
+[Project]
+Name = "MsgPackBf"
+TargetType = "BeefLib"
+
+[[Project.DistinctOptions]]
+ReflectAlwaysInclude = "IncludeAll"
+ReflectStaticMethods = true
+ReflectNonStaticMethods = true
+ReflectConstructors = true

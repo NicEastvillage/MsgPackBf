@@ -2,11 +2,17 @@
 
 A [MsgPack](https://msgpack.org/) library for [Beef](https://www.beeflang.org/) programming language.
 
-This librart is work in progress.
+This library is work in progress.
 
 TODO:
 - Deserialization
 - Serialization and deserialization using reflection
+
+## Repository
+
+In this repository you will find two folders:
+- `lib` is the MsgPackBf library.
+- `test` is a program to test MsgPackBf.
 
 ## How to use MsgPackBf
 
@@ -23,13 +29,7 @@ packer.Write("schema");
 packer.Write(0);
 ```
 
-Afterwards the `buffer` will contain your data and `packer.Length` is how many bytes are used.
-
-## Repository
-
-In this repository you will find two folders.
-- `lib` is the MsgPackBf library.
-- `test` is a program to test MsgPackBf.
+Afterwards `buffer` will contain your data and `packer.Length` is how many bytes are used.
 
 ## How to get MsgPackBf
 

@@ -8,6 +8,15 @@ namespace MsgPackBfTest
 	{
 		public static void Main()
 		{
+			uint8[] buffer = scope uint8[6];
+			MsgPacker packer = scope MsgPacker(buffer);
+
+			const uint32 x = 999999999;
+			packer.Write(x);
+
+			MsgUnpacker unpacker = scope MsgUnpacker(buffer);
+			Debug.Assert(x == unpacker.ReadUint32().Get());
+
 			TestUint01();
 			TestUint02();
 			TestUint03();

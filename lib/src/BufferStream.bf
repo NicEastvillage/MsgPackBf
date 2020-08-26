@@ -49,6 +49,14 @@ namespace MsgPackBf
 			}
 		}
 
+		public Result<uint8> TryReadByte()
+		{
+			if (mBuffer.Length - mPosition <= 0)
+				return .Err;
+			
+			return .Ok(mBuffer[mPosition++]);
+		}
+
 		public override Result<int> TryRead(Span<uint8> data)
 		{
 			let count = data.Length;

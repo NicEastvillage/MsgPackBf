@@ -5,8 +5,10 @@ A [MsgPack](https://msgpack.org/) library for [Beef](https://www.beeflang.org/) 
 This library is work in progress.
 
 TODO:
-- Deserialization
+- Serialization and deserialization of binary format
 - Serialization and deserialization using reflection
+- Support for extension types
+- More tests, especially for deserialization
 
 ## Repository
 
@@ -22,7 +24,7 @@ Serializing an object/map with the following structure `{"compact":true,"schema"
 uint8[] buffer = scope uint8[32];
 MsgPacker packer = scope MsgPacker(buffer);
 
-packer.BeginMap(2);
+packer.WriteMapHeader(2);
 packer.Write("compact");
 packer.Write(true);
 packer.Write("schema");
@@ -30,6 +32,32 @@ packer.Write(0);
 ```
 
 Afterwards `buffer` will contain your data and `packer.Length` is how many bytes are used.
+
+Deserializing the same object/map:
+
+```C#
+MsgUnpacker unpacker = scope MsgUnpacker(buffer);
+
+let count = (int)unpacker.ReadMapHeader();
+bool compact;
+int schema;
+
+for (int i < count)
+{
+	let key = scope String();
+	unpacker.ReadString(key);
+
+	switch (key)
+	{
+	case "compact":
+		compact = unpacker.ReadBool().Get();
+	case "schema":
+		schema = unpacker.ReadInt32().Get();
+	default:
+		// Unknown key
+	}
+}
+```
 
 ## How to get MsgPackBf
 

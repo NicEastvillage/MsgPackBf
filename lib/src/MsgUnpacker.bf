@@ -126,10 +126,22 @@ namespace MsgPackBf
 			return .Err;
 		}
 
+		public Result<uint32> ReadString(String str)
+		{
+			uint8 b = Try!(DecodeUint8());
+			str.Clear();
+
+			if (0xa0 <= b && b <= 0xbf) return DecodeString(b & 0x1f, str);
+			if (b == 0xd9) return DecodeString(Try!(DecodeUint8()), str);
+			if (b == 0xda) return DecodeString(Try!(DecodeUint16()), str);
+			if (b == 0xdb) return DecodeString(Try!(DecodeUint32()), str);
+			return .Err;
+		}
+
 		public Result<uint32> ReadArrayHeader()
 		{
 			uint8 b = Try!(DecodeUint8());
-			if (0x90 < b && b <= 0x9f) return b & 0x0f;
+			if (0x90 <= b && b <= 0x9f) return b & 0x0f;
 			if (b == 0xdc) return Try!(DecodeUint16());
 			if (b == 0xdd) return Try!(DecodeUint32());
 			return .Err;
@@ -203,6 +215,14 @@ namespace MsgPackBf
 			let v = scope UintToFloat();
 			v.u = Try!(DecodeUint64());
 			return v.d;
+		}
+
+		private Result<uint32> DecodeString(uint32 len, String str)
+		{
+			var buf = scope uint8[len];
+			if (len != Try!(mStream.TryRead(buf))) return .Err;
+			str.Append((char8*)&buf[0], len);
+			return len;
 		}
 	}
 }

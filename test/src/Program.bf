@@ -8,14 +8,16 @@ namespace MsgPackBfTest
 	{
 		public static void Main()
 		{
-			uint8[] buffer = scope uint8[6];
+			uint8[] buffer = scope uint8[200];
 			MsgPacker packer = scope MsgPacker(buffer);
 
-			const float x = 1.5f;
-			packer.Write(x);
+			let s = "Hello0000000000000000000000000000000000001231231231231231231231231231239191919239abcdeaf";
+			packer.Write(s);
 
 			MsgUnpacker unpacker = scope MsgUnpacker(buffer);
-			Debug.Assert(x == unpacker.ReadFloat().Get());
+			let so = scope String();
+			unpacker.ReadString(so);
+			Debug.Assert(s.Equals(so));
 
 			TestUint01();
 			TestUint02();

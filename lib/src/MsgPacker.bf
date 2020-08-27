@@ -234,7 +234,7 @@ namespace MsgPackBf
 			return EncodeDouble(value);
 		}
 
-		public Result<void> BeginMap(uint32 count)
+		public Result<void> WriteMapHeader(uint32 count)
 		{
 			if (count <= 15)
 			{
@@ -250,7 +250,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> BeginArray(uint32 count)
+		public Result<void> WriteArrayHeader(uint32 count)
 		{
 			if (count <= 15)
 			{

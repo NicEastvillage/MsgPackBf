@@ -285,7 +285,7 @@ namespace MsgPackBfTest
 			uint8[] buffer = scope uint8[20];
 			MsgPacker packer = scope MsgPacker(buffer);
 
-			packer.BeginMap(2);
+			packer.WriteMapHeader(2);
 			packer.Write("compact");
 			packer.Write(true);
 			packer.Write("schema");
@@ -323,7 +323,7 @@ namespace MsgPackBfTest
 
 			for (let l < 15)
 			{
-				packer.BeginArray((uint8)l);
+				packer.WriteArrayHeader((uint8)l);
 				for (let i < l)
 				{
 					packer.Write(i);
@@ -352,10 +352,10 @@ namespace MsgPackBfTest
 			MsgPacker packer = scope MsgPacker(buffer);
 
 			// No content packed
-			packer.BeginArray((uint16)16);
-			packer.BeginArray(uint16.MaxValue);
-			packer.BeginArray((uint32)uint16.MaxValue);
-			packer.BeginArray((uint32)uint16.MaxValue + 1);
+			packer.WriteArrayHeader((uint16)16);
+			packer.WriteArrayHeader(uint16.MaxValue);
+			packer.WriteArrayHeader((uint32)uint16.MaxValue);
+			packer.WriteArrayHeader((uint32)uint16.MaxValue + 1);
 
 			Debug.Assert(buffer[0] == (uint8)0xdc);
 			Debug.Assert(buffer[1] == (uint8)0x00);

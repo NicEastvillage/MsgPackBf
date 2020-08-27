@@ -126,6 +126,24 @@ namespace MsgPackBf
 			return .Err;
 		}
 
+		public Result<uint32> ReadArrayHeader()
+		{
+			uint8 b = Try!(DecodeUint8());
+			if (0x90 < b && b <= 0x9f) return b & 0x0f;
+			if (b == 0xdc) return Try!(DecodeUint16());
+			if (b == 0xdd) return Try!(DecodeUint32());
+			return .Err;
+		}
+
+		public Result<uint32> ReadMapHeader()
+		{
+			uint8 b = Try!(DecodeUint8());
+			if (0x80 < b && b <= 0x8f) return b & 0x0f;
+			if (b == 0xde) return Try!(DecodeUint16());
+			if (b == 0xdf) return Try!(DecodeUint32());
+			return .Err;
+		}
+
 		// ---- Decoding ---
 
 		private Result<uint8> DecodeUint8()

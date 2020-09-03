@@ -1,47 +1,40 @@
 using System;
 using MsgPackBf;
 using System.Diagnostics;
+using System.Collections;
 
 namespace MsgPackBfTest
 {
 	class Program
 	{
+		[Reflect]
+		class TestStruct
+		{
+			public InnerTest inner = new InnerTest() ~ delete _;
+			public List<int> list = new List<int>() ~ delete _;
+		}
+
+		[Reflect]
+		class InnerTest
+		{
+			public float scalar;
+		}
+
 		public static void Main()
 		{
 			// Serialization
-			uint8[] buffer = scope uint8[32];
+			uint8[] buffer = scope uint8[256];
 			MsgPacker packer = scope MsgPacker(buffer);
 
-			packer.WriteMapHeader(2);
-			packer.Write("compact");
-			packer.Write(true);
-			packer.Write("schema");
-			packer.Write(0);
+			let t = scope TestStruct();
+			t.inner.scalar = 1.5f;
 
-			// Deserialization
+			packer.Write(t);
+
 			MsgUnpacker unpacker = scope MsgUnpacker(buffer);
 
-			let count = (int)unpacker.ReadMapHeader();
-			bool compact;
-			int schema;
-
-			for (int i < count)
-			{
-				let key = scope String();
-				unpacker.ReadString(key);
-
-				switch (key)
-				{
-				case "compact":
-					compact = unpacker.ReadBool().Get();
-				case "schema":
-					schema = unpacker.ReadInt32().Get();
-				default:
-					// Unknown key
-					Debug.WriteLine("Unknown key: {}", key);
-				}
-			}
-
+			unpacker.ReadFloat().Get();
+			//unpacker.ReadInt32().Get();
 
 			SerializationTests.PerformTests();
 

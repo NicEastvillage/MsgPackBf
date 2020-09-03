@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections;
 
 namespace MsgPackBf
 {
@@ -102,6 +103,11 @@ namespace MsgPackBf
 			{
 				return EncodeUint64(value);
 			}
+		}
+
+		public Result<void> Write(uint value)
+		{
+			return Write((uint64)value);
 		}
 
 		public Result<void> Write(int8 value)
@@ -224,6 +230,11 @@ namespace MsgPackBf
 			}
 		}
 
+		public Result<void> Write(int value)
+		{
+			return Write((int64)value);
+		}
+
 		public Result<void> Write(float value)
 		{
 			return EncodeFloat(value);
@@ -292,7 +303,108 @@ namespace MsgPackBf
 			}
 		}
 
-		// TODO Composite types
+		public Result<void> Write(String string)
+		{
+			Debug.Assert(string != null);
+			return Write((StringView)string);
+		}
+
+		public Result<void> Write(Object obj)
+		{
+			Debug.WriteLine("It's an object: {}", obj);
+
+			let type = obj.GetType();
+			let fields = type.GetFields();
+
+			// TODO write fields of base type
+
+			for (let field in fields)
+			{
+				let fieldName = scope String(field.Name);
+				let fieldType = field.FieldType;
+				let fieldVariant = field.GetValue(obj).Get();
+
+				// TODO write field name
+
+				if (fieldType.IsPrimitive)
+				{
+					switch (fieldType)
+					{
+					case typeof(int):
+						Try!(Write(fieldVariant.Get<int>()));
+					case typeof(int8):
+						Try!(Write(fieldVariant.Get<int8>()));
+					case typeof(int16):
+						Try!(Write(fieldVariant.Get<int16>()));
+					case typeof(int32):
+						Try!(Write(fieldVariant.Get<int32>()));
+					case typeof(int64):
+						Try!(Write(fieldVariant.Get<int64>()));
+					case typeof(uint):
+						Try!(Write(fieldVariant.Get<uint>()));
+					case typeof(uint8):
+						Try!(Write(fieldVariant.Get<uint8>()));
+					case typeof(uint16):
+						Try!(Write(fieldVariant.Get<uint16>()));
+					case typeof(uint32):
+						Try!(Write(fieldVariant.Get<uint32>()));
+					case typeof(uint64):
+						Try!(Write(fieldVariant.Get<uint64>()));
+					case typeof(char8):
+						Try!(Write((uint8)fieldVariant.Get<char8>()));
+					case typeof(char16):
+						Try!(Write((uint16)fieldVariant.Get<char16>()));
+					case typeof(char32):
+						Try!(Write((uint32)fieldVariant.Get<char32>()));
+					case typeof(float):
+						Try!(Write(fieldVariant.Get<float>()));
+					case typeof(double):
+						Try!(Write(fieldVariant.Get<double>()));
+					case typeof(bool):
+						Try!(Write(fieldVariant.Get<bool>()));
+					default:
+						return .Err;
+					}
+				}
+				else if (fieldType.IsObject)
+				{
+					if (!fieldVariant.HasValue)
+					{
+						Try!(WriteNull());
+						continue;
+					}
+
+					var fieldValue = fieldVariant.Get<Object>();
+
+					if (fieldValue == null)
+					{
+						Try!(WriteNull());
+						continue;
+					}
+
+					let fieldTypeName = scope String();
+					fieldType.GetName(fieldTypeName);
+
+					if (fieldTypeName.Equals("List")) // Hack since List is generic so "fieldType == typeof(List)" does not work
+					{
+						// TODO
+						Debug.WriteLine("A LIST!");
+					}
+					else if (fieldTypeName.Equals("Dictionary"))
+					{
+						// TODO
+						Debug.WriteLine("A DICTIONARY!");
+					}
+					else
+					{
+						// Recursion
+						Write(fieldValue);
+					}
+				}
+			}
+
+			return .Ok;
+		}
 
 		// ---- Encoding ---
 

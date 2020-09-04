@@ -10,6 +10,8 @@ namespace MsgPackBfTest
 		[Reflect]
 		class TestStruct
 		{
+			public int32 integer = 42;
+			public String str = "Hello world";
 			public InnerTest inner = new InnerTest() ~ delete _;
 			public List<int> list = new List<int>() ~ delete _;
 		}
@@ -17,7 +19,7 @@ namespace MsgPackBfTest
 		[Reflect]
 		class InnerTest
 		{
-			public float scalar;
+			public float scalar = 1.5f;
 		}
 
 		public static void Main()
@@ -27,14 +29,18 @@ namespace MsgPackBfTest
 			MsgPacker packer = scope MsgPacker(buffer);
 
 			let t = scope TestStruct();
-			t.inner.scalar = 1.5f;
 
 			packer.Write(t);
 
 			MsgUnpacker unpacker = scope MsgUnpacker(buffer);
 
+			unpacker.ReadString(scope String()).Get(); // int32 integer = 42
+			unpacker.ReadInt32().Get();
+			unpacker.ReadString(scope String()).Get(); // String str = "Hello World"
+			unpacker.ReadString(scope String()).Get();
+			unpacker.ReadString(scope String()).Get(); // InnerTest inner = ..
+			unpacker.ReadString(scope String()).Get(); // float scalar = 1.5f
 			unpacker.ReadFloat().Get();
-			//unpacker.ReadInt32().Get();
 
 			SerializationTests.PerformTests();
 

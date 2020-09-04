@@ -219,6 +219,7 @@ namespace MsgPackBf
 
 		private Result<uint32> DecodeString(uint32 len, String str)
 		{
+			if (len == 0) return len;
 			var buf = scope uint8[len];
 			if (len != Try!(mStream.TryRead(buf))) return .Err;
 			str.Append((char8*)&buf[0], len);

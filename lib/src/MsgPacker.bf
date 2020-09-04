@@ -320,11 +320,15 @@ namespace MsgPackBf
 
 			for (let field in fields)
 			{
+				// Write field name
 				let fieldName = scope String(field.Name);
+				Write(fieldName);
+
+				Debug.WriteLine("About to write {}", fieldName);
+
+				// Write field value
 				let fieldType = field.FieldType;
 				let fieldVariant = field.GetValue(obj).Get();
-
-				// TODO write field name
 
 				if (fieldType.IsPrimitive)
 				{
@@ -382,10 +386,17 @@ namespace MsgPackBf
 						continue;
 					}
 
+					// Special cases depending on field type
 					let fieldTypeName = scope String();
 					fieldType.GetName(fieldTypeName);
 
-					if (fieldTypeName.Equals("List")) // Hack since List is generic so "fieldType == typeof(List)" does not work
+					if (fieldType == typeof(String))
+					{
+						// TODO StringView should also be serialized as string
+						Debug.WriteLine("A STRING!");
+						Try!(Write(fieldVariant.Get<String>()));
+					}
+					else if (fieldTypeName.Equals("List")) // Hack since List is generic so "fieldType == typeof(List)" does not work
 					{
 						// TODO
 						Debug.WriteLine("A LIST!");
@@ -398,8 +409,12 @@ namespace MsgPackBf
 					else
 					{
 						// Recursion
-						Write(fieldValue);
+						Debug.WriteLine("Going deeper -> {}", fieldName);
+						Try!(Write(fieldValue));
+						Debug.WriteLine("We back <- {}", fieldName);
 					}
+
+					Debug.WriteLine("Wrote {}", fieldName);
 				}
 			}
 

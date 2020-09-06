@@ -1,9 +1,10 @@
 using System;
 using System.Diagnostics;
+using Digest.Serialize;
 
 namespace MsgPackBf
 {
-	class MsgPacker
+	class MsgPacker : Serializer
 	{
 		Span<uint8> mBuffer;
 		BufferStream mStream ~ delete _;
@@ -22,17 +23,22 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> WriteNull()
+		public Result<void> SerializeNull()
 		{
 			return mStream.Write((uint8)0xc0);
 		}
 
-		public Result<void> Write(bool value)
+		public Result<void> SerializeBool(bool value)
 		{
 			return mStream.Write((uint8)(0xc2 | (value ? 1 : 0)));
 		}
 
-		public Result<void> Write(uint8 value)
+		public Result<void> SerializeUInt(uint value)
+		{
+			return SerializeUInt64((uint64)value);
+		}
+
+		public Result<void> SerializeUInt8(uint8 value)
 		{
 			if (value <= 127)
 			{
@@ -44,7 +50,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Write(uint16 value)
+		public Result<void> SerializeUInt16(uint16 value)
 		{
 			if (value <= 127)
 			{
@@ -60,7 +66,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Write(uint32 value)
+		public Result<void> SerializeUInt32(uint32 value)
 		{
 			if (value <= 127)
 			{
@@ -80,7 +86,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Write(uint64 value)
+		public Result<void> SerializeUInt64(uint64 value)
 		{
 			if (value <= 127)
 			{
@@ -104,7 +110,12 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Write(int8 value)
+		public Result<void> SerializeInt(int value)
+		{
+			return SerializeInt64((int64)value);
+		}
+
+		public Result<void> SerializeInt8(int8 value)
 		{
 			if (value >= -32)
 			{
@@ -116,7 +127,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Write(int16 value)
+		public Result<void> SerializeInt16(int16 value)
 		{
 			if (value >= -32)
 			{
@@ -144,7 +155,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Write(int32 value)
+		public Result<void> SerializeInt32(int32 value)
 		{
 			if (value >= -32)
 			{
@@ -180,7 +191,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Write(int64 value)
+		public Result<void> SerializeInt64(int64 value)
 		{
 			if (value >= -32)
 			{
@@ -224,49 +235,51 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Write(float value)
+		public Result<void> SerializeFloat(float value)
 		{
 			return EncodeFloat(value);
 		}
 
-		public Result<void> Write(double value)
+		public Result<void> SerializeDouble(double value)
 		{
 			return EncodeDouble(value);
 		}
 
-		public Result<void> WriteMapHeader(uint32 count)
+		public Result<SerializeMap> SerializeDictionary(int count)
 		{
 			if (count <= 15)
 			{
-				return EncodeFixmap((uint8)count);
+				Try!(EncodeFixmap((uint8)count));
 			}
 			else if (count <= uint16.MaxValue)
 			{
-				return EncodeMap16((uint16)count);
+				Try!(EncodeMap16((uint16)count));
 			}
 			else
 			{
-				return EncodeMap32(count);
+				Try!(EncodeMap32((uint32)count));
 			}
+			return .Ok(new MsgPackCompound(this, count));
 		}
 
-		public Result<void> WriteArrayHeader(uint32 count)
+		public Result<SerializeSequence> SerializeList(int count)
 		{
 			if (count <= 15)
 			{
-				return EncodeFixarray((uint8)count);
+				Try!(EncodeFixarray((uint8)count));
 			}
 			else if (count <= uint16.MaxValue)
 			{
-				return EncodeArray16((uint16)count);
+				Try!(EncodeArray16((uint16)count));
 			}
 			else
 			{
-				return EncodeArray32(count);
+				Try!(EncodeArray32((uint32)count));
 			}
+			return .Ok(new MsgPackCompound(this, count));
 		}
 
-		public Result<void> Write(StringView str)
+		public Result<void> SerializeStringView(StringView str)
 		{
 			let len = str.Length;
 
@@ -290,6 +303,11 @@ namespace MsgPackBf
 				Try!(EncodeStr32((uint32)len));
 				return mStream.Write(str);
 			}
+		}
+
+		public Result<void> Serialize(Serializable item)
+		{
+			return item.Serialize(this);
 		}
 
 		// TODO Composite types
@@ -522,6 +540,39 @@ namespace MsgPackBf
 			Try!(mStream.Write((uint8)((len >> 16) & 0xff)));
 			Try!(mStream.Write((uint8)((len >> 8) & 0xff)));
 			return mStream.Write((uint8)(len & 0xff));
+		}
+	}
+
+	public class MsgPackCompound : SerializeSequence, SerializeMap
+	{
+		private MsgPacker mPacker;
+		private int count = 0;
+		private int mExpectedCount;
+
+		public this(MsgPacker packer, int expectedCount)
+		{
+			mPacker = packer;
+			mExpectedCount = expectedCount;
+		}
+
+		public Result<void> SerializeElement(Serializable element)
+		{
+			count++;
+			return mPacker.Serialize(element);
+		}
+
+		public Result<void> SerializeKeyValuePair(Serializable key, Serializable value)
+		{
+			count++;
+			Try!(mPacker.Serialize(key));
+			return mPacker.Serialize(value);
+		}
+
+		public Result<void> End()
+		{
+			if (count != mExpectedCount)
+				return .Err;
+			return .Ok;
 		}
 	}
 }

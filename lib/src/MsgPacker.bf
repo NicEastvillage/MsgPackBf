@@ -110,7 +110,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeInt(int value)
+		public override Result<void> SerializeInt(int value)
 		{
 			return SerializeInt64((int64)value);
 		}
@@ -191,7 +191,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeInt64(int64 value)
+		public override Result<void> SerializeInt64(int64 value)
 		{
 			if (value >= -32)
 			{
@@ -235,7 +235,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeFloat(float value)
+		public override Result<void> SerializeFloat(float value)
 		{
 			return EncodeFloat(value);
 		}
@@ -245,7 +245,7 @@ namespace MsgPackBf
 			return EncodeDouble(value);
 		}
 
-		public Result<SerializeMap> SerializeDictionary(int count)
+		public override Result<MapSerializer> SerializeDictionary(int count)
 		{
 			if (count <= 15)
 			{
@@ -262,7 +262,7 @@ namespace MsgPackBf
 			return .Ok(new MsgPackCompound(this, count));
 		}
 
-		public Result<SerializeSequence> SerializeList(int count)
+		public override Result<ListSerializer> SerializeList(int count)
 		{
 			if (count <= 15)
 			{
@@ -279,7 +279,7 @@ namespace MsgPackBf
 			return .Ok(new MsgPackCompound(this, count));
 		}
 
-		public Result<void> SerializeStringView(StringView str)
+		public override Result<void> SerializeString(StringView str)
 		{
 			let len = str.Length;
 
@@ -305,9 +305,9 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> Serialize(Serializable item)
+		protected override Result<ObjectSerializer> SerializeObject(String className)
 		{
-			return item.Serialize(this);
+			return .Ok(new MsgPackObjectBuilder(this));
 		}
 
 		// TODO Composite types
@@ -543,10 +543,10 @@ namespace MsgPackBf
 		}
 	}
 
-	public class MsgPackCompound : SerializeSequence, SerializeMap
+	public class MsgPackCompound : ListSerializer, MapSerializer
 	{
 		private MsgPacker mPacker;
-		private int count = 0;
+		private int mCount = 0;
 		private int mExpectedCount;
 
 		public this(MsgPacker packer, int expectedCount)
@@ -557,21 +557,42 @@ namespace MsgPackBf
 
 		public Result<void> SerializeElement(Serializable element)
 		{
-			count++;
+			mCount++;
 			return mPacker.Serialize(element);
 		}
 
 		public Result<void> SerializeKeyValuePair(Serializable key, Serializable value)
 		{
-			count++;
+			mCount++;
 			Try!(mPacker.Serialize(key));
 			return mPacker.Serialize(value);
 		}
 
 		public Result<void> End()
 		{
-			if (count != mExpectedCount)
+			if (mCount != mExpectedCount)
 				return .Err;
+			return .Ok;
+		}
+	}
+
+	public class MsgPackObjectBuilder : ObjectSerializer
+	{
+		private MsgPacker mPacker;
+
+		public this(MsgPacker packer)
+		{
+			mPacker = packer;
+		}
+
+		public Result<void> SerializeField(String fieldName, Serializable value)
+		{
+			Try!(mPacker.SerializeString(fieldName));
+			return mPacker.Serialize(value);
+		}
+
+		public Result<void> End()
+		{
 			return .Ok;
 		}
 	}

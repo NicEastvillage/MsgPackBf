@@ -10,7 +10,7 @@ namespace MsgPackBfTest
 		[Reflect]
 		public class TestClass
 		{
-			public InnerTestClass inner = new InnerTestClass() ~ delete _;
+			public InnerTestClass inner = null;
 			public int i = 5;
 			public float f = 42f;
 		}

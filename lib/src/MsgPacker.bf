@@ -23,7 +23,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeNull()
+		public override Result<void> SerializeNull()
 		{
 			return mStream.Write((uint8)0xc0);
 		}

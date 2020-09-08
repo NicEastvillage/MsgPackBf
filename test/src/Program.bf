@@ -24,7 +24,7 @@ namespace MsgPackBfTest
 		public static void Main()
 		{
 			// Serialization
-			uint8[] buffer = scope uint8[32];
+			uint8[] buffer = scope uint8[256];
 			MsgPacker packer = scope MsgPacker(buffer);
 
 			let list = scope List<int>();

@@ -28,17 +28,17 @@ namespace MsgPackBf
 			return mStream.Write((uint8)0xc0);
 		}
 
-		public Result<void> SerializeBool(bool value)
+		public override Result<void> SerializeBool(bool value)
 		{
 			return mStream.Write((uint8)(0xc2 | (value ? 1 : 0)));
 		}
 
-		public Result<void> SerializeUInt(uint value)
+		public override Result<void> SerializeUInt(uint value)
 		{
 			return SerializeUInt64((uint64)value);
 		}
 
-		public Result<void> SerializeUInt8(uint8 value)
+		public override Result<void> SerializeUInt8(uint8 value)
 		{
 			if (value <= 127)
 			{
@@ -50,7 +50,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeUInt16(uint16 value)
+		public override Result<void> SerializeUInt16(uint16 value)
 		{
 			if (value <= 127)
 			{
@@ -66,7 +66,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeUInt32(uint32 value)
+		public override Result<void> SerializeUInt32(uint32 value)
 		{
 			if (value <= 127)
 			{
@@ -86,7 +86,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeUInt64(uint64 value)
+		public override Result<void> SerializeUInt64(uint64 value)
 		{
 			if (value <= 127)
 			{
@@ -115,7 +115,7 @@ namespace MsgPackBf
 			return SerializeInt64((int64)value);
 		}
 
-		public Result<void> SerializeInt8(int8 value)
+		public override Result<void> SerializeInt8(int8 value)
 		{
 			if (value >= -32)
 			{
@@ -127,7 +127,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeInt16(int16 value)
+		public override Result<void> SerializeInt16(int16 value)
 		{
 			if (value >= -32)
 			{
@@ -155,7 +155,7 @@ namespace MsgPackBf
 			}
 		}
 
-		public Result<void> SerializeInt32(int32 value)
+		public override Result<void> SerializeInt32(int32 value)
 		{
 			if (value >= -32)
 			{
@@ -235,12 +235,22 @@ namespace MsgPackBf
 			}
 		}
 
+		public override Result<void> SerializeChar8(char8 value)
+		{
+			return SerializeUInt8((uint8)value);
+		}
+
+		public override Result<void> SerializeChar16(char16 value)
+		{
+			return SerializeUInt16((uint16)value);
+		}
+
 		public override Result<void> SerializeFloat(float value)
 		{
 			return EncodeFloat(value);
 		}
 
-		public Result<void> SerializeDouble(double value)
+		public override Result<void> SerializeDouble(double value)
 		{
 			return EncodeDouble(value);
 		}

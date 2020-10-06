@@ -585,7 +585,7 @@ namespace MsgPackBf
 			mPacker = packer;
 		}
 
-		public Result<void> SerializeField(String fieldName, Serializable value)
+		public Result<void> SerializeField(StringView fieldName, Serializable value)
 		{
 			Try!(mPacker.SerializeString(fieldName));
 			return mPacker.Serialize(value);

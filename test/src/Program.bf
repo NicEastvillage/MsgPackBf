@@ -8,7 +8,12 @@ namespace MsgPackBfTest
 {
 	class Program
 	{
-		public class TestClass : Serialized
+		public struct SuperTestClass : Serialized
+		{
+			public int superint = 101;
+		}
+
+		public struct TestClass : SuperTestClass, Serialized
 		{
 			public int i = 1;
 			public int8 i8 = 2;
@@ -26,7 +31,7 @@ namespace MsgPackBfTest
 			public double d = 12.0;
 			public bool b = true;
 			public InnerTest inner;
-			public TestClass child = null;
+			//public TestClass child = null;
 		}
 
 		public struct InnerTest : Serialized

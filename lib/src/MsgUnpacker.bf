@@ -139,10 +139,9 @@ namespace MsgPackBf
 			return .Err;
 		}
 
-		public Result<uint32> ReadBinary(List<uint8> buffer)
+		public Result<uint32> ReadBinary(uint8[] buffer)
 		{
 			uint8 b = Try!(DecodeUint8());
-			buffer.Clear();
 
 			if (b == 0xc4) return DecodeBinary(Try!(DecodeUint8()), buffer);
 			if (b == 0xc5) return DecodeBinary(Try!(DecodeUint16()), buffer);
@@ -237,14 +236,9 @@ namespace MsgPackBf
 			return len;
 		}
 
-		private Result<uint32> DecodeBinary(uint32 len, List<uint8> buffer)
+		private Result<uint32> DecodeBinary(uint32 len, uint8[] buf)
 		{
-			var buf = scope uint8[len];
 			if (len != Try!(mStream.TryRead(buf))) return .Err;
-			for (let i < len)
-			{
-				buffer.Add(buf[i]);
-			}
 			return .Ok(len);
 		}
 	}

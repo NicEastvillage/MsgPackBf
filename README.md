@@ -5,7 +5,6 @@ A [MsgPack](https://msgpack.org/) library for [Beef](https://www.beeflang.org/) 
 This library is work in progress.
 
 TODO:
-- Serialization and deserialization of binary format
 - Serialization and deserialization using reflection
 - Support for extension types
 - More tests, especially for deserialization

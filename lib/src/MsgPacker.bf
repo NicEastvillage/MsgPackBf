@@ -292,6 +292,27 @@ namespace MsgPackBf
 			}
 		}
 
+		public Result<void> Write(Span<uint8> bin)
+		{
+			let len = bin.Length;
+
+			if (len <= uint8.MaxValue)
+			{
+				Try!(EncodeBin8((uint8)len));
+				return mStream.Write(bin);
+			}
+			else if (len <= uint16.MaxValue)
+			{
+				Try!(EncodeBin16((uint16)len));
+				return mStream.Write(bin);
+			}
+			else
+			{
+				Try!(EncodeBin32((uint32)len));
+				return mStream.Write(bin);
+			}
+		}
+
 		// TODO Composite types
 
 		// ---- Encoding ---

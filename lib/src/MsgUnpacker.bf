@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 namespace MsgPackBf
 {
 	class MsgUnpacker
@@ -138,6 +139,17 @@ namespace MsgPackBf
 			return .Err;
 		}
 
+		public Result<uint32> ReadBinary(List<uint8> buffer)
+		{
+			uint8 b = Try!(DecodeUint8());
+			buffer.Clear();
+
+			if (b == 0xc4) return DecodeBinary(Try!(DecodeUint8()), buffer);
+			if (b == 0xc5) return DecodeBinary(Try!(DecodeUint16()), buffer);
+			if (b == 0xc6) return DecodeBinary(Try!(DecodeUint32()), buffer);
+			return .Err;
+		}
+
 		public Result<uint32> ReadArrayHeader()
 		{
 			uint8 b = Try!(DecodeUint8());
@@ -223,6 +235,17 @@ namespace MsgPackBf
 			if (len != Try!(mStream.TryRead(buf))) return .Err;
 			str.Append((char8*)&buf[0], len);
 			return len;
+		}
+
+		private Result<uint32> DecodeBinary(uint32 len, List<uint8> buffer)
+		{
+			var buf = scope uint8[len];
+			if (len != Try!(mStream.TryRead(buf))) return .Err;
+			for (let i < len)
+			{
+				buffer.Add(buf[i]);
+			}
+			return .Ok(len);
 		}
 	}
 }
